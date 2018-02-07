@@ -284,7 +284,7 @@ function handleWhereIsProfIntent(intent, session, callback) {
     var myJSON = {
         "id": "LUKI",
         "method": "authenticate",
-        "params": {"user": "in120083", "password": "luki05525252", "client": "CLIENT"},
+        "params": {"user": "---", "password": "---", "client": "CLIENT"},
         "jsonrpc": "2.0"
     };
 
@@ -845,7 +845,7 @@ function WebUntisPost(intent, session, callback) {
     var myJSON = {
         "id": "LUKI",
         "method": "authenticate",
-        "params": {"user": "in120083", "password": "luki05525252", "client": "CLIENT"},
+        "params": {"user": "---", "password": "---", "client": "CLIENT"},
         "jsonrpc": "2.0"
     };
 
@@ -906,7 +906,7 @@ function GetNextHoliday(intent, session, callback) {
     var myJSON = {
         "id": "LUKI",
         "method": "authenticate",
-        "params": {"user": "in120083", "password": "luki05525252", "client": "CLIENT"},
+        "params": {"user": "---", "password": "---", "client": "CLIENT"},
         "jsonrpc": "2.0"
     };
 
@@ -1160,7 +1160,7 @@ function getTimetable(intent, session, callback) {
     var myJSON = {
         "id": "LUKI",
         "method": "authenticate",
-        "params": {"user": "in120083", "password": "luki05525252", "client": "CLIENT"},
+        "params": {"user": "---", "password": "---", "client": "CLIENT"},
         "jsonrpc": "2.0"
     };
 
