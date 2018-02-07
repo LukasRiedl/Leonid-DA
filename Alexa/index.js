@@ -106,6 +106,11 @@ function onIntent(intentRequest, session, callback) {
     } else if (intentName === "GetKlasses") {
         getKlassen(intent, session, callback);
     }
+    else if(intentName === "WhereIsProfessor")
+    {
+        handleWhereIsProfIntent(intent, session, callback);
+
+    }
     else {
         handleerror(session, callback)
     }
@@ -140,7 +145,7 @@ function getWelcomeResponse(callback) {
             console.log('Waiting');
             request.get("http://leonid-da.herokuapp.com/rs/leonidserver/animation/?name=LeonidSpeak", function (error, response, body) {
 
-                var speechOutput = "Hallo Ich bin Leonie. Wie kann ich ihnen helfen?";
+                var speechOutput = "Hallo Ich bin Leonie. Willkommen zum Tag der offenen Tür. Wie kann ich ihnen helfen?";
 
                 var reprompt = "Sagen Sie zum Beispiel, Welches Fach unterrichtet Professor Stütz";
 
@@ -165,14 +170,30 @@ function getWelcomeResponse(callback) {
 
 function handleWhereIsProfIntent(intent, session, callback) {
 
-    console.log(intent.slots.Prof)
+   // console.log(intent.slots.Prof)
+    var count1;
+    var count2;
+    var teacherfull;
+    
 
 
-    var count1 = Object.keys(intent.slots.Prof).length;
-    var count2 = Object.keys(intent.slots.Time).length;
+    if(intent.name === "WhereIsProfIntent")
+{
+    count1 = Object.keys(intent.slots.Prof).length;
+    count2 = Object.keys(intent.slots.Time).length;
+      teacherfull = intent.slots.Prof.value
+}else if(intent.name ==="WhereIsProfessor")
+{
+
+    count1 = Object.keys(intent.slots.Professor).length;
+    count2 = Object.keys(intent.slots.Time).length;
+      teacherfull = intent.slots.Professor.value
+}
 
 
     if (count1 === 1 || count2 === 1) {
+        
+         request.get("http://leonid-da.herokuapp.com/rs/leonidserver/animation/?name=LeonidSpeak", function (error, response, body) {
 
         var speechOutput = "Bitte versuche es noch einmal. Probiere zum Beispiel: In welcher Klasse unterrichtet Professor Stütz in der ersten Stunde"
 
@@ -190,16 +211,19 @@ function handleWhereIsProfIntent(intent, session, callback) {
         }
 
         callback(sessionAttributes, buildSpeechletResponse(header, speechOutput, reprompt, shouldEndSession));
+        
+         });
 
     }
 
 
-    var teacherfull = intent.slots.Prof.value
+   
 
 
     var teacher = teacherfull.substring(teacherfull.indexOf(' ') + 1);
 
     console.log(teacher);
+    console.log("-------------------------")
 
     while (teacher.includes('.')) {
         teacher = teacher.replace('.', '')
@@ -290,14 +314,17 @@ function handleWhereIsProfIntent(intent, session, callback) {
 
     }, function (error, response, body) {
 
+ var sessionid = body.result.sessionId;
 
-        request.get("https://leonid-da.herokuapp.com/rs/leonidserver/query?msg=" + body.result.sessionId, function (error, response, body) {
-
-
-            request.get("https://leonid-da.herokuapp.com/rs/leonidserver", function (error, response, body) {
+       // request.get("https://leonid-da.herokuapp.com/rs/leonidserver/query?msg=" + body.result.sessionId, function (error, response, body) {
 
 
-                var sessionid = body;
+          //  request.get("https://leonid-da.herokuapp.com/rs/leonidserver", function (error, response, body) {
+
+
+               
+                
+             
 
                 request.post(
                     'https://mese.webuntis.com/WebUntis/jsonrpc.do;jsessionid=' + sessionid,
@@ -305,6 +332,7 @@ function handleWhereIsProfIntent(intent, session, callback) {
                     function (error, response, body) {
                         if (!error && response.statusCode == 200) {
 
+                            console.log(body);
 
                             var arrFound = body.result.filter(function (item) {
                                 return item.longName.toLowerCase() == teacher;
@@ -353,8 +381,25 @@ function handleWhereIsProfIntent(intent, session, callback) {
                                                         });
 
                                                         console.log(arrFound[0].name)
-
-                                                        var speechOutput = "Professor " + teacher + " unterrichtet in der " + timeString + " Stunde in der " + arrFound[0].name
+                                                        
+                                                         request.get("http://leonid-da.herokuapp.com/rs/leonidserver/animation/?name=LeonidSpeak", function (error, response, body) {
+                                                             
+                                                        var speechOutput;
+                                                    
+                                                        if(arrFound[0].name.substring(1,2) === "B")
+                                                        {
+                                                        speechOutput = "Professor " + teacher + " unterrichtet in der " + timeString + " Stunde in der " 
+                                                        + arrFound[0].name.substring(0,1)+" " + arrFound[0].name.substring(1,2) + "E " + arrFound[0].name.substring(2,3)
+                                                        + " " +arrFound[0].name.substring(3,4) +" " + arrFound[0].name.substring(4,5)
+                                                        }
+                                                        else if(arrFound[0].name.substring(1,2) === "C"){
+                                                            speechOutput = "Professor " + teacher + " unterrichtet in der " + timeString + " Stunde in der " 
+                                                        + arrFound[0].name.substring(0,1)+" " + arrFound[0].name.substring(1,2) + " " + arrFound[0].name.substring(2,3)
+                                                        + " " +arrFound[0].name.substring(3,4) +" " + arrFound[0].name.substring(4,5)
+                                                        }else{
+                                                             speechOutput = "Professor " + teacher + " unterrichtet in der " + timeString + " Stunde in der " 
+                                                        + arrFound[0].name;
+                                                        }
 
                                                         var reprompt = "Möchten sie noch etwas wissen?";
 
@@ -370,11 +415,17 @@ function handleWhereIsProfIntent(intent, session, callback) {
                                                         }
 
                                                         callback(sessionAttributes, buildSpeechletResponse(header, speechOutput, reprompt, shouldEndSession));
+                                                        
+                                                         });
 
                                                     }
                                                 });
                                         }
                                         else {
+                                            
+                                             request.get("http://leonid-da.herokuapp.com/rs/leonidserver/animation/?name=LeonidSpeak", function (error, response, body) {
+                                                 
+                                                 
                                             var speechOutput = "Professor " + teacher + " unterrichtet in der " + timeString + " Stunde in keiner Klasse"
 
                                             var reprompt = "Möchten sie noch etwas wissen?";
@@ -391,6 +442,8 @@ function handleWhereIsProfIntent(intent, session, callback) {
                                             }
 
                                             callback(sessionAttributes, buildSpeechletResponse(header, speechOutput, reprompt, shouldEndSession));
+                                            
+                                             });
                                         }
 
                                     }
@@ -407,36 +460,37 @@ function handleWhereIsProfIntent(intent, session, callback) {
             });
 
 
-        });
+     //   });
 
 
-    });
+  //  });
 
 }
 
 
 function handleTeacherIntent(intent, session, callback) {
+    var count1;
+    
+    
+       if(Object.keys(intent.slots).length === 0)
+    {
+        count1 = 1;
+    }
+    else
+    {
+    
+    count1 = Object.keys(intent.slots.Lehrer).length
+    }
+ 
+    
+    
+    if(count1 === 1 || count1 === 0)
+    {
+       
+        
+          request.get("http://leonid-da.herokuapp.com/rs/leonidserver/animation/?name=LeonidSpeak", function (error, response, body) {
 
-
-    fs.createReadStream('Professoren.csv')
-        .pipe(csv())
-        .on('data', function (data) {
-
-            var arr = data.toString().split(";");
-            var name = arr[0];
-
-
-            /*   if(intent.slots.Teacher.value == null && intent.slots.Lehrer.value != null)
-               {*/
-
-            if (intent.name === "LehrerIntent") {
-
-                if (intent.slots.Lehrer.value.toLowerCase() === name.toLowerCase()) {
-
-
-                    request.get("http://leonid-da.herokuapp.com/rs/leonidserver/animation/?name=LeonidSpeak", function (error, response, body) {
-
-                        var speechOutput = intent.slots.Lehrer.value + " unterrichtet " + arr[1];
+                        var speechOutput = "Ich habe den Professor Namen leider nicht richtig verstanden";
 
 
                         var reprompt = "Möchten sie noch etwas wissen?";
@@ -454,12 +508,80 @@ function handleTeacherIntent(intent, session, callback) {
 
                         callback(sessionAttributes, buildSpeechletResponse(header, speechOutput, reprompt, shouldEndSession));
                     });
+                    
+    }
+    else
+    {
+    
+         var lehrer = intent.slots.Lehrer.value.toLowerCase();
+            
+            
+            var teacher = lehrer.substring(lehrer.indexOf(' ') + 1);
+
+ 
+
+    while (teacher.includes('.')) {
+        teacher = teacher.replace('.', '')
+    }
+    while (teacher.includes(' ')) {
+        teacher = teacher.replace(' ', '')
+    }
+
+    teacher = teacher.toLowerCase();
+    var found = false;
+
+
+    fs.createReadStream('Professoren.csv')
+        .pipe(csv())
+        .on('data', function (data) {
+
+            var arr = data.toString().split(";");
+            var name = arr[0];
+            var arr1 = name.split(" ");
+            var teachername = arr1[1].toLowerCase();
+
+       
+            
+
+            if (intent.name === "LehrerIntent") {
+
+                if (teacher === teachername) {
+
+
+                    
+        
+
+                    request.get("http://leonid-da.herokuapp.com/rs/leonidserver/animation/?name=LeonidSpeak", function (error, response, body) {
+
+                        var speechOutput = "Professor "+ teacher  + " unterrichtet " + arr[1];
+
+
+                        var reprompt = "Möchten sie noch etwas wissen?";
+
+                        var header = "HTL Leonding Teacher";
+
+                        var shouldEndSession = false;
+
+                        var sessionAttributes = {
+                            "speechOutput": speechOutput,
+                            "repromptText": reprompt
+
+
+                        }
+
+                        callback(sessionAttributes, buildSpeechletResponse(header, speechOutput, reprompt, shouldEndSession));
+                        
+                    
+                        found = true;
+                        
+                        
+                    });
 
 
                 }
 
-            }//else if(intent.slots.Teacher.value != null)
-            else if (intent.name === "TeacherIntent") {
+            }
+           /* else if (intent.name === "TeacherIntent") {
                 if (intent.slots.Teacher.value.toLowerCase() === name.toLowerCase()) {
 
                     request.get("http://leonid-da.herokuapp.com/rs/leonidserver/animation/?name=LeonidSpeak", function (error, response, body) {
@@ -485,7 +607,7 @@ function handleTeacherIntent(intent, session, callback) {
                     });
 
                 }
-            } else {
+            }*//* else {
 
                 request.get("http://leonid-da.herokuapp.com/rs/leonidserver/animation/?name=LeonidSpeak", function (error, response, body) {
 
@@ -505,33 +627,44 @@ function handleTeacherIntent(intent, session, callback) {
 
 
                     callback(sessionAttributes, buildSpeechletResponse(header, speechOutput, reprompt, shouldEndSession));
-                });
-            }
+                });*/
+            //}
 
         })
         .on('end', function (data) {
-            request.get("http://leonid-da.herokuapp.com/rs/leonidserver/animation/?name=LeonidSpeak", function (error, response, body) {
-
-
-                var speechOutput = "Diesen Professor kenne ich nicht";
-                var reprompt = "Möchten sie noch etwas wissen?";
-
-                var header = "HTL Leonding Teacher";
-
-                var shouldEndSession = false;
-
-                var sessionAttributes = {
-                    "speechOutput": speechOutput,
-                    "repromptText": reprompt
-
-
-                }
-
-                callback(sessionAttributes, buildSpeechletResponse(header, speechOutput, reprompt, shouldEndSession));
+            
+            if(found === false)
+            {
+            
+                       
+                            request.get("http://leonid-da.herokuapp.com/rs/leonidserver/animation/?name=LeonidSpeak", function (error, response, body) {
+            
+            
+                            var speechOutput = "Diesen Professor kenne ich nicht";
+                            var reprompt = "Möchten sie noch etwas wissen?";
+            
+                            var header = "HTL Leonding Teacher";
+            
+                            var shouldEndSession = false;
+            
+                            var sessionAttributes = {
+                                "speechOutput": speechOutput,
+                                "repromptText": reprompt
+            
+            
+                            }
+            
+                            callback(sessionAttributes, buildSpeechletResponse(header, speechOutput, reprompt, shouldEndSession));
+                             
             });
+                }
+                
+           
 
 
         });
+        
+    }
 
 }
 
@@ -629,11 +762,22 @@ function handleGetHelpRequest(intent, session, callback) {
 
 function handleFinishSessionRequest(intent, session, callback) {
     // End the session with a "Good bye!" if the user wants to quit the game
+       request.get("http://leonid-da.herokuapp.com/rs/leonidserver/animation/?name=LeonidSpeak", function (error, response, body) {
+           
+           setTimeout(function () {
+               
+               ;
 
     request.get("http://leonid-da.herokuapp.com/rs/leonidserver/animation/?name=LeonidSitDown", function (error, response, body) {
+        
+      callback(session.attributes,
+            buildSpeechletResponseWithoutCard("Auf wiedersehen! Ich hoffe ich konnte ihnen helfen.", "", true))
 
-        callback(session.attributes,
-            buildSpeechletResponseWithoutCard("Auf wiedersehen! Ich hoffe ich konnte ihnen helfen.", "", true));
+        
+            
+         });
+         
+           },1500);
     });
 
 }
@@ -785,6 +929,7 @@ function GetNextHoliday(intent, session, callback) {
 
     }, function (error, response, body) {
 
+        var sessionid = body.result.sessionId;
 
         request.get("https://leonid-da.herokuapp.com/rs/leonidserver/query?msg=" + body.result.sessionId, function (error, response, body) {
 
@@ -793,7 +938,7 @@ function GetNextHoliday(intent, session, callback) {
 
 
                 request.post(
-                    'https://mese.webuntis.com/WebUntis/jsonrpc.do;jsessionid=' + body,
+                    'https://mese.webuntis.com/WebUntis/jsonrpc.do;jsessionid=' + sessionid,
                     {json: myJSONObject},
                     function (error, response, body) {
                         if (!error && response.statusCode == 200) {
@@ -1167,14 +1312,29 @@ function getTimetable(intent, session, callback) {
 
 
 function getKlassen(intent, session, callback) {
+    
+    
     if (intent.slots.Schueler.value == null) {
         var speechOutput = "Diesen Schüler kenne ich nicht";
 
-        buildSpeechletResponseWithoutCard(speechOutput, "", false)
+                var reprompt = "Möchten sie noch etwas wissen?";
+
+                var header = "HTL Leonding Schüler";
+
+                var shouldEndSession = false;
+
+                var sessionAttributes = {
+                    "speechOutput": speechOutput,
+                    "repromptText": reprompt
 
 
-        callback(session.attributes, buildSpeechletResponseWithoutCard(speechOutput, "", false));
+                }
+
+                callback(sessionAttributes, buildSpeechletResponse(header, speechOutput, reprompt, shouldEndSession));
+
     }
+    
+    var found= false;
 
     fs.createReadStream('Schueler.csv')
         .pipe(csv())
@@ -1182,7 +1342,7 @@ function getKlassen(intent, session, callback) {
 
             var arr = data.toString().split(";");
             var name = arr[1] + " " + arr[2];
-
+            
 
             var array = arr[0].split()
 
@@ -1193,10 +1353,21 @@ function getKlassen(intent, session, callback) {
 
                     var speechOutput = intent.slots.Schueler.value + " geht in die " + arr[0].substring(0, 2) + " " + arr[0].substring(2, 5);
 
-                    buildSpeechletResponseWithoutCard(speechOutput, "", false)
+                    var header = "HTL Leonding Schüler";
+
+                var shouldEndSession = false;
+
+                var sessionAttributes = {
+                    "speechOutput": speechOutput,
+                    "repromptText": reprompt
 
 
-                    callback(session.attributes, buildSpeechletResponseWithoutCard(speechOutput, "", false));
+                }
+                found=true;
+
+                callback(sessionAttributes, buildSpeechletResponse(header, speechOutput, reprompt, shouldEndSession));
+                
+                
 
                 });
             }
@@ -1204,17 +1375,30 @@ function getKlassen(intent, session, callback) {
 
         })
         .on('end', function (data) {
+            
+            if(found === false)
+            {
             request.get("http://leonid-da.herokuapp.com/rs/leonidserver/animation/?name=LeonidSpeak", function (error, response, body) {
 
 
                 var speechOutput = "Diesen Schüler kenne ich nicht";
 
-                buildSpeechletResponseWithoutCard(speechOutput, "", false)
+                var header = "HTL Leonding Schüler";
+
+                var shouldEndSession = false;
+
+                var sessionAttributes = {
+                    "speechOutput": speechOutput,
+                    "repromptText": reprompt
 
 
-                callback(session.attributes, buildSpeechletResponseWithoutCard(speechOutput, "", false));
+                }
+
+                callback(sessionAttributes, buildSpeechletResponse(header, speechOutput, reprompt, shouldEndSession));
 
             });
+            
+            }
         });
 
 
